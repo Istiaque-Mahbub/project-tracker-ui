@@ -9,7 +9,7 @@ export function useDashboardData(tenantId: string | null) {
   const projectsQuery = useProjects(tenantId);
   const activitiesQuery = useActivities(tenantId);
 
-  const projects = projectsQuery.data ?? [];
+  const projects = projectsQuery.projects ?? [];
 
   /*
    * Fetch tasks for every project.
