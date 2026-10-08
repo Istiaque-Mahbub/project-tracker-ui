@@ -5,8 +5,8 @@ import api from "../axios";
 export const register = async(
     data: RegisterRequest
 ): Promise<AuthResponse> =>{
-    const response = await api.post(
-        "/api/auth/register",
+    const response = await api.post<AuthResponse>(
+        "/api/Auth/register",
         data
     )
 
@@ -18,7 +18,7 @@ export const login = async (
   data: LoginRequest
 ): Promise<AuthResponse> => {
   const response = await api.post<AuthResponse>(
-    "/api/auth/login",
+    "/api/Auth/login",
     data
   );
 
