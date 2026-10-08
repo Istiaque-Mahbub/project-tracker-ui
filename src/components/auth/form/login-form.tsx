@@ -5,9 +5,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { login } from "@/lib/api/auth";
-import { saveAuth } from "@/lib/auth";
+
 import { LoginFormValues, loginSchema } from "../login-schema";
 import { toast } from "sonner";
+import { saveAuth } from "@/lib/auth";
 
 export default function LoginForm() {
   const router = useRouter();
