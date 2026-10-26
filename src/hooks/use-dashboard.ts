@@ -5,196 +5,104 @@ import { useQuery } from "@tanstack/react-query";
 
 import { getProjects } from "@/lib/api/projects";
 import { getTasks } from "@/lib/api/tasks";
-import { getActivities } from "@/lib/api/activities";
+import { useActivities } from "@/hooks/use-activities";
 
-import { ProjectResponse } from "@/types/project";
-import { TaskResponse } from "@/types/task";
-import { ActivityLogResponse } from "@/types/activity";
+import type { ProjectResponse } from "@/types/project";
+import type { TaskResponse } from "@/types/task";
 
 export function useDashboard(tenantId: string | null) {
   /*
-   * ----------------------------------------
    * PROJECTS
-   * ----------------------------------------
    */
 
   const projectsQuery = useQuery<ProjectResponse[]>({
     queryKey: ["dashboard", "projects", tenantId],
-
     queryFn: () => {
-      if (!tenantId) {
-        return Promise.resolve([]);
-      }
-
+      if (!tenantId) return Promise.resolve([]);
       return getProjects(tenantId);
     },
-
     enabled: Boolean(tenantId),
   });
 
   /*
-   * ----------------------------------------
    * ACTIVITIES
-   * ----------------------------------------
+   * Use the existing activity hook.
    */
 
-  const activitiesQuery = useQuery<ActivityLogResponse[]>({
-    queryKey: ["dashboard", "activities", tenantId],
-
-    queryFn: () => {
-      if (!tenantId) {
-        return Promise.resolve([]);
-      }
-
-      return getActivities(tenantId);
-    },
-
-    enabled: Boolean(tenantId),
-  });
+  const activitiesQuery = useActivities(tenantId);
 
   /*
-   * ----------------------------------------
    * TASKS
-   * ----------------------------------------
-   *
-   * Fetch tasks after projects load.
    */
 
   const projects = projectsQuery.data ?? [];
-
-  const projectIds = projects.map(
-    (project) => project.id
-  );
+  const projectIds = projects.map((project) => project.id);
 
   const tasksQuery = useQuery<TaskResponse[]>({
-    queryKey: [
-      "dashboard",
-      "tasks",
-      tenantId,
-      projectIds,
-    ],
-
+    queryKey: ["dashboard", "tasks", tenantId, projectIds],
     queryFn: async () => {
-      if (!tenantId || projectIds.length === 0) {
-        return [];
-      }
+      if (!tenantId || projectIds.length === 0) return [];
 
-      const taskResults = await Promise.all(
-        projectIds.map((projectId) =>
-          getTasks(tenantId, projectId)
-        )
+      const results = await Promise.all(
+        projectIds.map((projectId) => getTasks(tenantId, projectId))
       );
 
-      return taskResults.flat();
+      return results.flat();
     },
-
-    enabled:
-      Boolean(tenantId) &&
-      projectsQuery.isSuccess,
+    enabled: Boolean(tenantId) && projectsQuery.isSuccess,
   });
 
-  /*
-   * ----------------------------------------
-   * FINAL DATA
-   * ----------------------------------------
-   */
-
-  const activities = activitiesQuery.data ?? [];
   const tasks = tasksQuery.data ?? [];
+  const activities = activitiesQuery.data ?? [];
 
   /*
-   * ----------------------------------------
-   * TASK STATUS STATISTICS
-   * ----------------------------------------
-   *
-   * C# TaskStatus enum:
-   * Backlog    = 0
-   * Todo       = 1
+   * TASK STATUS ENUM
+   * Backlog = 0
+   * Todo = 1
    * InProgress = 2
    * CodeReview = 3
-   * Testing    = 4
-   * Completed  = 5
+   * Testing = 4
+   * Completed = 5
    */
 
-  const BACKLOG_STATUS = 0;
-  const TODO_STATUS = 1;
-  const IN_PROGRESS_STATUS = 2;
-  const CODE_REVIEW_STATUS = 3;
-  const TESTING_STATUS = 4;
-  const COMPLETED_STATUS = 5;
-
-  const backlogTasks = tasks.filter(
-    (task) => task.status === BACKLOG_STATUS
-  );
-
-  const todoTasks = tasks.filter(
-    (task) => task.status === TODO_STATUS
-  );
-
-  const inProgressTasks = tasks.filter(
-    (task) => task.status === IN_PROGRESS_STATUS
-  );
-
-  const codeReviewTasks = tasks.filter(
-    (task) => task.status === CODE_REVIEW_STATUS
-  );
-
-  const testingTasks = tasks.filter(
-    (task) => task.status === TESTING_STATUS
-  );
-
-  const completedTasks = tasks.filter(
-    (task) => task.status === COMPLETED_STATUS
-  );
+  const backlogTasks = tasks.filter((task) => task.status === 0);
+  const todoTasks = tasks.filter((task) => task.status === 1);
+  const inProgressTasks = tasks.filter((task) => task.status === 2);
+  const codeReviewTasks = tasks.filter((task) => task.status === 3);
+  const testingTasks = tasks.filter((task) => task.status === 4);
+  const completedTasks = tasks.filter((task) => task.status === 5);
 
   /*
-   * ----------------------------------------
    * COMPLETION RATE
-   * ----------------------------------------
    */
 
   const completionRate =
     tasks.length === 0
       ? 0
-      : Math.round(
-          (completedTasks.length / tasks.length) * 100
-        );
+      : Math.round((completedTasks.length / tasks.length) * 100);
 
   /*
-   * ----------------------------------------
-   * DUE TASKS
-   * ----------------------------------------
+   * TASKS DUE IN THE NEXT SEVEN DAYS
    */
 
   const now = new Date();
-
   const sevenDaysFromNow = new Date(now);
-
-  sevenDaysFromNow.setDate(
-    now.getDate() + 7
-  );
+  sevenDaysFromNow.setDate(now.getDate() + 7);
 
   const dueThisWeek = tasks.filter((task) => {
-    if (!task.dueDate) {
-      return false;
-    }
+    if (!task.dueDate || task.status === 5) return false;
 
     const dueDate = new Date(task.dueDate);
 
-    const isWithinNextSevenDays =
+    return (
+      !Number.isNaN(dueDate.getTime()) &&
       dueDate >= now &&
-      dueDate <= sevenDaysFromNow;
-
-    const isNotCompleted =
-      task.status !== COMPLETED_STATUS;
-
-    return isWithinNextSevenDays && isNotCompleted;
+      dueDate <= sevenDaysFromNow
+    );
   });
 
   /*
-   * ----------------------------------------
-   * LOADING
-   * ----------------------------------------
+   * LOADING AND ERROR STATES
    */
 
   const isLoading =
@@ -202,22 +110,25 @@ export function useDashboard(tenantId: string | null) {
     activitiesQuery.isLoading ||
     tasksQuery.isLoading;
 
-  /*
-   * ----------------------------------------
-   * ERROR
-   * ----------------------------------------
-   */
-
   const isError =
     projectsQuery.isError ||
     activitiesQuery.isError ||
     tasksQuery.isError;
 
   /*
-   * ----------------------------------------
-   * RETURN DASHBOARD DATA
-   * ----------------------------------------
+   * REFRESH
    */
+
+  const refetch = async () => {
+    const results = await Promise.all([
+      projectsQuery.refetch(),
+      activitiesQuery.refetch(),
+    ]);
+
+    if (results[0].isSuccess) {
+      await tasksQuery.refetch();
+    }
+  };
 
   return {
     projects,
@@ -236,6 +147,7 @@ export function useDashboard(tenantId: string | null) {
 
     isLoading,
     isError,
+    refetch,
 
     projectsQuery,
     tasksQuery,

@@ -1,7 +1,7 @@
-export interface ActivityLogResponse {
+export interface ActivityResponse {
   id: string;
   tenantId: string;
-  projectId: string | null;
+  projectId: string;
   taskId: string | null;
   userId: string;
   userName: string;

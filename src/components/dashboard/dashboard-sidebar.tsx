@@ -36,34 +36,13 @@ const workspaceItems = [
         icon: FolderKanban,
     },
     {
-        label: "Tasks",
-        href: "/dashboard/tasks",
-        icon: CheckSquare,
-    },
-    {
-        label: "Milestones",
-        href: "/dashboard/milestones",
-        icon: Milestone,
-    },
-    {
         label: "Team",
         href: "/dashboard/team",
         icon: Users,
     },
 ];
 
-const activityItems = [
-    {
-        label: "Activity",
-        href: "/dashboard/activity",
-        icon: Activity,
-    },
-    {
-        label: "Notifications",
-        href: "/dashboard/notifications",
-        icon: Bell,
-    },
-];
+
 
 export default function DashboardSidebar({
     collapsed,
@@ -184,40 +163,7 @@ export default function DashboardSidebar({
                         </p>
                     )}
 
-                    <div className="space-y-1">
-                        {activityItems.map((item) => {
-                            const Icon = item.icon;
-                            const active = isActive(item.href);
 
-                            return (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    onClick={onMobileClose}
-                                    title={collapsed ? item.label : undefined}
-                                    className={`
-                    group flex items-center gap-3 rounded-xl px-3 py-2.5
-                    text-sm transition-all
-                    ${active
-                                            ? "bg-blue-600/10 text-blue-400"
-                                            : "text-slate-400 hover:bg-slate-900 hover:text-white"
-                                        }
-                    ${collapsed ? "justify-center" : ""}
-                  `}
-                                >
-                                    <Icon className="h-[18px] w-[18px] shrink-0" />
-
-                                    {!collapsed && <span>{item.label}</span>}
-
-                                    {item.label === "Notifications" && !collapsed && (
-                                        <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 text-[10px] font-bold text-white">
-                                            3
-                                        </span>
-                                    )}
-                                </Link>
-                            );
-                        })}
-                    </div>
                 </nav>
 
                 {/* Bottom section */}

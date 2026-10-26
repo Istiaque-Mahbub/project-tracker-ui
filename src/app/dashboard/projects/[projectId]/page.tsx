@@ -45,9 +45,8 @@ import type {
 import MilestonesSection from "@/components/projects/milestones-section";
 import MembersSection from "@/components/projects/members-section";
 import LabelsSection from "@/components/projects/labels-section";
-import { TaskLabels } from "@/components/projects/task-labels";
-import { TaskComments } from "@/components/projects/task-comments";
 import ProjectTaskList from "@/components/projects/project-task-list";
+import ProjectActivity from "@/components/projects/project-activity";
 
 const TASK_STATUS_LABELS: Record<number, string> = {
     0: "Backlog",
@@ -417,6 +416,11 @@ export default function ProjectDetailsPage() {
                         tenantId={tenantId}
                         projectId={projectId}
                     />
+
+                    <ProjectActivity
+                        tenantId={tenantId}
+                        projectId={projectId}
+                    />
                 </section>
             </main>
 
@@ -475,41 +479,7 @@ export default function ProjectDetailsPage() {
     );
 }
 
-function TaskStatusBadge({ status }: { status: string | number }) {
-    const normalized = normalizeStatus(status);
-    const className =
-        normalized === "completed"
-            ? "bg-green-500/10 text-green-600"
-            : normalized === "inprogress"
-                ? "bg-blue-500/10 text-blue-600"
-                : normalized === "todo"
-                    ? "bg-yellow-500/10 text-yellow-600"
-                    : "bg-muted text-muted-foreground";
 
-    return (
-        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${className}`}>
-            {formatStatusText(status)}
-        </span>
-    );
-}
-
-function TaskPriorityBadge({ priority }: { priority: string | number }) {
-    const normalized = normalizePriority(priority);
-    const className =
-        normalized === "critical" || normalized === "high"
-            ? "bg-red-500/10 text-red-600"
-            : normalized === "medium"
-                ? "bg-orange-500/10 text-orange-600"
-                : normalized === "low"
-                    ? "bg-green-500/10 text-green-600"
-                    : "bg-muted text-muted-foreground";
-
-    return (
-        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${className}`}>
-            {formatPriorityText(priority)}
-        </span>
-    );
-}
 
 function CreateTaskDialog({
     isSubmitting,

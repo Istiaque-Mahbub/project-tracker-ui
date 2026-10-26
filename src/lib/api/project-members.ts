@@ -46,3 +46,25 @@ export async function removeProjectMember(
     `${projectMembersUrl(tenantId, projectId)}/${userId}`
   );
 }
+
+export async function addTenantMember(
+  tenantId: string,
+  data: {
+    email: string;
+    role: string;
+  }
+): Promise<void> {
+  await api.post(
+    `/api/tenants/${tenantId}/members`,
+    data
+  );
+}
+
+export async function removeTenantMember(
+  tenantId: string,
+  userId: string
+): Promise<void> {
+  await api.delete(
+    `/api/tenants/${tenantId}/members/${userId}`
+  );
+}

@@ -328,10 +328,10 @@ export default function DashboardPage() {
                                         {task.title}
                                     </p>
 
-                                    {task.assignedToName && (
+                                    {task.assignedToNames && task.assignedToNames.length > 0 && (
                                         <p className="mt-1 text-sm text-muted-foreground">
                                             Assigned to{" "}
-                                            {task.assignedToName}
+                                            {task.assignedToNames.join(", ")}
                                         </p>
                                     )}
 

@@ -5,7 +5,6 @@ import {
     Building2,
     ChevronDown,
     Menu,
-    Search,
 } from "lucide-react";
 
 interface DashboardTopbarProps {
@@ -54,22 +53,7 @@ export default function DashboardTopbar({
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
-                {/* Search */}
-                <button
-                    type="button"
-                    className="
-            hidden items-center gap-2 rounded-xl border border-slate-800
-            bg-slate-900/50 px-3 py-2 text-xs text-slate-500
-            transition hover:border-slate-700 hover:text-slate-300
-            md:flex
-          "
-                >
-                    <Search className="h-4 w-4" />
-                    <span>Search</span>
-                    <kbd className="ml-4 rounded border border-slate-700 px-1.5 py-0.5 text-[9px]">
-                        /
-                    </kbd>
-                </button>
+
 
                 {/* Notifications */}
                 <button
@@ -81,17 +65,7 @@ export default function DashboardTopbar({
                     <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-blue-500 ring-2 ring-slate-950" />
                 </button>
 
-                {/* Avatar */}
-                <button
-                    type="button"
-                    className="flex items-center gap-2 rounded-xl p-1.5 transition hover:bg-slate-900"
-                >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white">
-                        I
-                    </div>
 
-                    <ChevronDown className="hidden h-4 w-4 text-slate-600 sm:block" />
-                </button>
             </div>
         </header>
     );
