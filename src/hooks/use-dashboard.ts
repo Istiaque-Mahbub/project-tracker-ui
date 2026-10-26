@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
@@ -56,8 +57,7 @@ export function useDashboard(tenantId: string | null) {
    * TASKS
    * ----------------------------------------
    *
-   * We only request tasks when projects
-   * actually exist.
+   * Fetch tasks after projects load.
    */
 
   const projects = projectsQuery.data ?? [];
@@ -99,36 +99,52 @@ export function useDashboard(tenantId: string | null) {
    * ----------------------------------------
    */
 
-  const activities =
-    activitiesQuery.data ?? [];
-
-  const tasks =
-    tasksQuery.data ?? [];
+  const activities = activitiesQuery.data ?? [];
+  const tasks = tasksQuery.data ?? [];
 
   /*
    * ----------------------------------------
-   * STATISTICS
+   * TASK STATUS STATISTICS
    * ----------------------------------------
+   *
+   * C# TaskStatus enum:
+   * Backlog    = 0
+   * Todo       = 1
+   * InProgress = 2
+   * CodeReview = 3
+   * Testing    = 4
+   * Completed  = 5
    */
 
-  const completedTasks = tasks.filter(
-    (task) =>
-      task.status.toLowerCase() ===
-      "completed"
-  );
+  const BACKLOG_STATUS = 0;
+  const TODO_STATUS = 1;
+  const IN_PROGRESS_STATUS = 2;
+  const CODE_REVIEW_STATUS = 3;
+  const TESTING_STATUS = 4;
+  const COMPLETED_STATUS = 5;
 
-  const inProgressTasks = tasks.filter(
-    (task) =>
-      task.status.toLowerCase() ===
-      "inprogress" ||
-      task.status.toLowerCase() ===
-      "in_progress"
+  const backlogTasks = tasks.filter(
+    (task) => task.status === BACKLOG_STATUS
   );
 
   const todoTasks = tasks.filter(
-    (task) =>
-      task.status.toLowerCase() ===
-      "todo"
+    (task) => task.status === TODO_STATUS
+  );
+
+  const inProgressTasks = tasks.filter(
+    (task) => task.status === IN_PROGRESS_STATUS
+  );
+
+  const codeReviewTasks = tasks.filter(
+    (task) => task.status === CODE_REVIEW_STATUS
+  );
+
+  const testingTasks = tasks.filter(
+    (task) => task.status === TESTING_STATUS
+  );
+
+  const completedTasks = tasks.filter(
+    (task) => task.status === COMPLETED_STATUS
   );
 
   /*
@@ -141,9 +157,7 @@ export function useDashboard(tenantId: string | null) {
     tasks.length === 0
       ? 0
       : Math.round(
-          (completedTasks.length /
-            tasks.length) *
-            100
+          (completedTasks.length / tasks.length) * 100
         );
 
   /*
@@ -154,30 +168,28 @@ export function useDashboard(tenantId: string | null) {
 
   const now = new Date();
 
-  const sevenDaysFromNow =
-    new Date(now);
+  const sevenDaysFromNow = new Date(now);
 
   sevenDaysFromNow.setDate(
     now.getDate() + 7
   );
 
-  const dueThisWeek = tasks.filter(
-    (task) => {
-      if (!task.dueDate) {
-        return false;
-      }
-
-      const dueDate =
-        new Date(task.dueDate);
-
-      return (
-        dueDate >= now &&
-        dueDate <= sevenDaysFromNow &&
-        task.status.toLowerCase() !==
-          "completed"
-      );
+  const dueThisWeek = tasks.filter((task) => {
+    if (!task.dueDate) {
+      return false;
     }
-  );
+
+    const dueDate = new Date(task.dueDate);
+
+    const isWithinNextSevenDays =
+      dueDate >= now &&
+      dueDate <= sevenDaysFromNow;
+
+    const isNotCompleted =
+      task.status !== COMPLETED_STATUS;
+
+    return isWithinNextSevenDays && isNotCompleted;
+  });
 
   /*
    * ----------------------------------------
@@ -201,14 +213,23 @@ export function useDashboard(tenantId: string | null) {
     activitiesQuery.isError ||
     tasksQuery.isError;
 
+  /*
+   * ----------------------------------------
+   * RETURN DASHBOARD DATA
+   * ----------------------------------------
+   */
+
   return {
     projects,
     tasks,
     activities,
 
-    completedTasks,
-    inProgressTasks,
+    backlogTasks,
     todoTasks,
+    inProgressTasks,
+    codeReviewTasks,
+    testingTasks,
+    completedTasks,
 
     completionRate,
     dueThisWeek,

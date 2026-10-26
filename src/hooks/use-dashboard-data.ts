@@ -19,7 +19,7 @@ export function useDashboardData(tenantId: string | null) {
   );
 
   const tasks = useMemo(() => {
-    return taskQueries.flatMap((query) => query.data ?? []);
+    return taskQueries.flatMap((query) => query.tasks ?? []);
   }, [taskQueries]);
 
   const isLoading =
