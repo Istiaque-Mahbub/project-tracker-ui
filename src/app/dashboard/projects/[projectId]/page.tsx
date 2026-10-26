@@ -46,6 +46,8 @@ import MilestonesSection from "@/components/projects/milestones-section";
 import MembersSection from "@/components/projects/members-section";
 import LabelsSection from "@/components/projects/labels-section";
 import { TaskLabels } from "@/components/projects/task-labels";
+import { TaskComments } from "@/components/projects/task-comments";
+import ProjectTaskList from "@/components/projects/project-task-list";
 
 const TASK_STATUS_LABELS: Record<number, string> = {
     0: "Backlog",
@@ -385,77 +387,22 @@ export default function ProjectDetailsPage() {
                     </div>
                 </section>
 
-                <section className="overflow-hidden rounded-xl border bg-card">
-                    <div className="flex flex-col gap-4 border-b p-5 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h2 className="text-lg font-semibold">Tasks</h2>
-                                <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs">
-                                    {tasks.length}
-                                </span>
-                            </div>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                Tasks belonging to this project.
-                            </p>
-                        </div>
 
-                        <button
-                            type="button"
-                            onClick={() => setIsCreateTaskDialogOpen(true)}
-                            className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
-                        >
-                            <Plus className="h-4 w-4" />
-                            New Task
-                        </button>
-                    </div>
+                <ProjectTaskList
+                    tenantId={tenantId}
+                    projectId={projectId}
+                    tasks={tasks}
+                    isLoading={isTasksLoading}
+                    isError={isTasksError}
+                    onRetry={() => {
+                        void refetchTasks();
+                    }}
+                    onCreateTask={() => setIsCreateTaskDialogOpen(true)}
+                    onEditTask={(task) => setEditingTask(task)}
+                    onAssignTask={(task) => setAssigningTask(task)}
+                    onDeleteTask={(task) => setDeletingTask(task)}
+                />
 
-                    {isTasksLoading && (
-                        <div className="flex items-center justify-center p-10 text-muted-foreground">
-                            <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-                            Loading tasks...
-                        </div>
-                    )}
-
-                    {isTasksError && (
-                        <div className="p-6">
-                            <p className="text-sm text-destructive">Unable to load tasks.</p>
-                            <button
-                                type="button"
-                                onClick={() => refetchTasks()}
-                                className="mt-3 inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted"
-                            >
-                                <RefreshCw className="h-4 w-4" />
-                                Retry
-                            </button>
-                        </div>
-                    )}
-
-                    {!isTasksLoading && !isTasksError && tasks.length === 0 && (
-                        <div className="p-10 text-center">
-                            <CheckCircle2 className="mx-auto h-8 w-8 text-muted-foreground" />
-                            <h3 className="mt-4 font-semibold">No tasks yet</h3>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                Create the first task for this project.
-                            </p>
-                        </div>
-                    )}
-
-                    {!isTasksLoading && !isTasksError && tasks.length > 0 && (
-                        <div className="divide-y">
-                            {tasks.map((task) => (
-                                <TaskRow
-                                    key={task.id}
-                                    task={task}
-                                    tenantId={tenantId}
-                                    projectId={projectId}
-                                    onEdit={() => setEditingTask(task)}
-                                    onAssign={() => setAssigningTask(task)}
-                                    onDelete={() => setDeletingTask(task)}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </section>
 
                 <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <MembersSection
@@ -470,8 +417,6 @@ export default function ProjectDetailsPage() {
                         tenantId={tenantId}
                         projectId={projectId}
                     />
-                    <ProjectSectionPlaceholder title="Comments" description="Project comments will appear here." />
-                    <ProjectSectionPlaceholder title="Activity" description="Project activity will appear here." />
                 </section>
             </main>
 
@@ -527,107 +472,6 @@ export default function ProjectDetailsPage() {
                 />
             )}
         </>
-    );
-}
-
-function TaskRow({
-    task,
-    onEdit,
-    onAssign,
-    tenantId,
-    projectId,
-    onDelete,
-}: {
-    task: TaskResponse;
-    onEdit: () => void;
-    onAssign: () => void;
-    onDelete: () => void;
-    tenantId: string;
-    projectId: string;
-}) {
-    const status = normalizeStatus(task.status);
-
-    return (
-        <div className="flex flex-col gap-4 p-5 hover:bg-muted/30 md:flex-row md:items-center md:justify-between">
-            <div className="flex min-w-0 items-start gap-3">
-                <div className="mt-0.5">
-                    {status === "completed" ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    ) : status === "inprogress" ? (
-                        <Clock3 className="h-5 w-5 text-blue-500" />
-                    ) : (
-                        <Circle className="h-5 w-5 text-muted-foreground" />
-                    )}
-                </div>
-
-                <div className="min-w-0">
-                    <h3 className="break-words font-medium">{task.title}</h3>
-                    {task.description && (
-                        <p className="mt-1 whitespace-pre-wrap break-words text-sm text-muted-foreground">
-                            {task.description}
-                        </p>
-                    )}
-
-
-                    <TaskLabels
-                        tenantId={tenantId}
-                        projectId={projectId}
-                        taskId={task.id}
-                    />
-
-
-                    <p className="mt-2 text-xs text-muted-foreground">
-                        Assigned to:{" "}
-                        <span className="font-medium text-foreground">
-                            {task.assignedToNames?.length
-                                ? task.assignedToNames.join(", ")
-                                : "Unassigned"}
-                        </span>
-                    </p>
-                </div>
-            </div>
-
-            <div className="flex shrink-0 flex-wrap items-center gap-2">
-                <TaskStatusBadge status={task.status} />
-                <TaskPriorityBadge priority={task.priority} />
-
-                {task.dueDate && (
-                    <span className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs text-muted-foreground">
-                        <CalendarDays className="h-3.5 w-3.5" />
-                        {formatDate(task.dueDate)}
-                    </span>
-                )}
-
-                <button
-                    type="button"
-                    onClick={onEdit}
-                    className="inline-flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs hover:bg-muted"
-                >
-                    <Pencil className="h-3.5 w-3.5" />
-                    Edit
-                </button>
-
-
-                <button
-                    type="button"
-                    onClick={onDelete}
-                    className="inline-flex items-center gap-1 rounded-md border border-destructive/30 px-2.5 py-1.5 text-xs text-destructive hover:bg-destructive/10"
-                >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    Delete
-                </button>
-
-
-                <button
-                    type="button"
-                    onClick={onAssign}
-                    className="inline-flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs hover:bg-muted"
-                >
-                    <UserPlus className="h-3.5 w-3.5" />
-                    Assign
-                </button>
-            </div>
-        </div>
     );
 }
 
