@@ -42,6 +42,7 @@ import type {
     ProjectMember,
     TaskPriority,
 } from "@/types/task";
+import MilestonesSection from "@/components/projects/milestones-section";
 
 const TASK_STATUS_LABELS: Record<number, string> = {
     0: "Backlog",
@@ -453,7 +454,10 @@ export default function ProjectDetailsPage() {
 
                 <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <ProjectSectionPlaceholder title="Members" description="Project members will appear here." />
-                    <ProjectSectionPlaceholder title="Milestones" description="Project milestones will appear here." />
+                    <MilestonesSection
+                        tenantId={tenantId}
+                        projectId={projectId}
+                    />
                     <ProjectSectionPlaceholder title="Labels" description="Project labels will appear here." />
                     <ProjectSectionPlaceholder title="Comments" description="Project comments will appear here." />
                     <ProjectSectionPlaceholder title="Activity" description="Project activity will appear here." />
