@@ -43,6 +43,9 @@ import type {
     TaskPriority,
 } from "@/types/task";
 import MilestonesSection from "@/components/projects/milestones-section";
+import MembersSection from "@/components/projects/members-section";
+import LabelsSection from "@/components/projects/labels-section";
+import { TaskLabels } from "@/components/projects/task-labels";
 
 const TASK_STATUS_LABELS: Record<number, string> = {
     0: "Backlog",
@@ -443,6 +446,8 @@ export default function ProjectDetailsPage() {
                                 <TaskRow
                                     key={task.id}
                                     task={task}
+                                    tenantId={tenantId}
+                                    projectId={projectId}
                                     onEdit={() => setEditingTask(task)}
                                     onAssign={() => setAssigningTask(task)}
                                     onDelete={() => setDeletingTask(task)}
@@ -453,12 +458,18 @@ export default function ProjectDetailsPage() {
                 </section>
 
                 <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <ProjectSectionPlaceholder title="Members" description="Project members will appear here." />
+                    <MembersSection
+                        tenantId={tenantId}
+                        projectId={projectId}
+                    />
                     <MilestonesSection
                         tenantId={tenantId}
                         projectId={projectId}
                     />
-                    <ProjectSectionPlaceholder title="Labels" description="Project labels will appear here." />
+                    <LabelsSection
+                        tenantId={tenantId}
+                        projectId={projectId}
+                    />
                     <ProjectSectionPlaceholder title="Comments" description="Project comments will appear here." />
                     <ProjectSectionPlaceholder title="Activity" description="Project activity will appear here." />
                 </section>
@@ -523,12 +534,16 @@ function TaskRow({
     task,
     onEdit,
     onAssign,
+    tenantId,
+    projectId,
     onDelete,
 }: {
     task: TaskResponse;
     onEdit: () => void;
     onAssign: () => void;
     onDelete: () => void;
+    tenantId: string;
+    projectId: string;
 }) {
     const status = normalizeStatus(task.status);
 
@@ -552,6 +567,14 @@ function TaskRow({
                             {task.description}
                         </p>
                     )}
+
+
+                    <TaskLabels
+                        tenantId={tenantId}
+                        projectId={projectId}
+                        taskId={task.id}
+                    />
+
 
                     <p className="mt-2 text-xs text-muted-foreground">
                         Assigned to:{" "}
