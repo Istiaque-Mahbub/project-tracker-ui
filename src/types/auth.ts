@@ -26,3 +26,8 @@ export interface AuthResponse {
   accessTokenExpiresAt: string;
   tenants: Tenant[];
 }
+
+
+export interface LogoutRequest {
+  refreshToken: string;
+}

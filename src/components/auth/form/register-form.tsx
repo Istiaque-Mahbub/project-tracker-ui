@@ -1,14 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { register as registerApi } from "@/lib/api/auth";
 import { RegisterFormValues, registerSchema } from "../register-schema";
 import { toast } from "sonner";
-import { saveAuth } from "@/lib/auth";
+import { isAuthenticated, saveAuth, syncAuthCookie } from "@/lib/auth";
 
 export default function RegisterForm() {
     const router = useRouter();
@@ -16,6 +16,13 @@ export default function RegisterForm() {
     const [serverError, setServerError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    useEffect(() => {
+        if (isAuthenticated()) {
+            syncAuthCookie();
+            router.replace("/dashboard");
+        }
+    }, [router]);
 
     const {
         register,
@@ -42,8 +49,6 @@ export default function RegisterForm() {
                 password: data.password,
             });
 
-            console.log(response);
-
             saveAuth(response);
 
             toast.success("Account created successfully", {
@@ -51,10 +56,11 @@ export default function RegisterForm() {
             });
 
             router.push("/dashboard");
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string; title?: string } } };
             const message =
-                error?.response?.data?.message ||
-                error?.response?.data?.title ||
+                err?.response?.data?.message ||
+                err?.response?.data?.title ||
                 "Registration failed. Please try again.";
 
             setServerError(message);

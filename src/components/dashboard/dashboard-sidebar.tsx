@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
     Activity,
     Bell,
@@ -10,12 +10,15 @@ import {
     ChevronRight,
     FolderKanban,
     LayoutDashboard,
+    LogOut,
     Milestone,
-    Settings,
     Users,
     X,
     Zap,
 } from "lucide-react";
+import { toast } from "sonner";
+import { logout } from "@/lib/api/auth";
+import { getAuth, clearAuth } from "@/lib/auth";
 
 interface DashboardSidebarProps {
     collapsed: boolean;
@@ -51,6 +54,26 @@ export default function DashboardSidebar({
     onMobileClose,
 }: DashboardSidebarProps) {
     const pathname = usePathname();
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        try {
+            const auth = getAuth();
+
+            if (auth?.refreshToken) {
+                await logout({
+                    refreshToken: auth.refreshToken,
+                });
+            }
+        } catch (error) {
+            console.error("Logout API failed:", error);
+        } finally {
+            clearAuth();
+            onMobileClose();
+            toast.success("Logged out successfully.");
+            router.replace("/");
+        }
+    };
 
     const isActive = (href: string) => {
         if (href === "/dashboard") {
@@ -168,23 +191,21 @@ export default function DashboardSidebar({
 
                 {/* Bottom section */}
                 <div className="border-t border-slate-800/80 p-3">
-                    <Link
-                        href="/dashboard/settings"
-                        onClick={onMobileClose}
-                        title={collapsed ? "Settings" : undefined}
+                    <button
+                        type="button"
+                        onClick={handleLogout}
+                        title={collapsed ? "Logout" : undefined}
                         className={`
-              flex items-center gap-3 rounded-xl px-3 py-2.5
+              flex w-full items-center gap-3 rounded-xl px-3 py-2.5
               text-sm text-slate-400 transition
-              hover:bg-slate-900 hover:text-white
+              hover:bg-rose-500/10 hover:text-rose-400
               ${collapsed ? "justify-center" : ""}
             `}
                     >
-                        <Settings className="h-[18px] w-[18px] shrink-0" />
+                        <LogOut className="h-[18px] w-[18px] shrink-0" />
 
-                        {!collapsed && <span>Settings</span>}
-                    </Link>
-
-
+                        {!collapsed && <span>Logout</span>}
+                    </button>
                 </div>
 
                 {/* Collapse button */}

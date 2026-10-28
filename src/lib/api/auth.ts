@@ -1,4 +1,4 @@
-import { AuthResponse, LoginRequest, RegisterRequest } from "@/types/auth";
+import { AuthResponse, LoginRequest, LogoutRequest, RegisterRequest } from "@/types/auth";
 import api from "../axios";
 
 
@@ -24,3 +24,9 @@ export const login = async (
 
   return response.data;
 };
+
+export async function logout(
+  request: LogoutRequest
+): Promise<void> {
+  await api.post("/api/auth/logout", request);
+}

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter } from "next/navigation";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import DashboardTopbar from "@/components/dashboard/dashboard-topbar";
+import { isAuthenticated, syncAuthCookie } from "@/lib/auth";
 
 function SidebarFallback({ collapsed }: { collapsed: boolean }) {
     return (
@@ -32,8 +34,17 @@ export default function DashboardLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const router = useRouter();
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+
+    useEffect(() => {
+        if (!isAuthenticated()) {
+            router.replace("/");
+        } else {
+            syncAuthCookie();
+        }
+    }, [router]);
 
     return (
         <div className="flex min-h-screen bg-slate-950 text-white">
@@ -57,4 +68,4 @@ export default function DashboardLayout({
             </div>
         </div>
     );
-}
+}

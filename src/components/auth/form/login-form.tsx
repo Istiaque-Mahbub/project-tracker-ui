@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
@@ -8,13 +8,20 @@ import { login } from "@/lib/api/auth";
 
 import { LoginFormValues, loginSchema } from "../login-schema";
 import { toast } from "sonner";
-import { saveAuth } from "@/lib/auth";
+import { isAuthenticated, saveAuth, syncAuthCookie } from "@/lib/auth";
 
 export default function LoginForm() {
   const router = useRouter();
 
   const [serverError, setServerError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      syncAuthCookie();
+      router.replace("/dashboard");
+    }
+  }, [router]);
 
   const {
     register,
@@ -33,8 +40,6 @@ export default function LoginForm() {
       setServerError("");
       const response = await login(data);
 
-      console.log(response);
-
       saveAuth(response);
 
       toast.success("Login successful", {
@@ -42,10 +47,11 @@ export default function LoginForm() {
       });
 
       router.push("/dashboard");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string; title?: string } } };
       const message =
-        error?.response?.data?.message ||
-        error?.response?.data?.title ||
+        err?.response?.data?.message ||
+        err?.response?.data?.title ||
         "Invalid email or password.";
 
       setServerError(message);
