@@ -7,16 +7,12 @@ import { useParams, useRouter } from "next/navigation";
 import {
     ArrowLeft,
     CalendarDays,
-    CheckCircle2,
-    Circle,
-    Clock3,
     FolderKanban,
     Loader2,
     Pencil,
     Plus,
     RefreshCw,
     Trash2,
-    UserPlus,
     X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -47,6 +43,7 @@ import MembersSection from "@/components/projects/members-section";
 import LabelsSection from "@/components/projects/labels-section";
 import ProjectTaskList from "@/components/projects/project-task-list";
 import ProjectActivity from "@/components/projects/project-activity";
+import TaskDetailsDialog from "@/components/projects/task-details-dialog";
 
 const TASK_STATUS_LABELS: Record<number, string> = {
     0: "Backlog",
@@ -78,6 +75,7 @@ export default function ProjectDetailsPage() {
     const [editingTask, setEditingTask] = useState<TaskResponse | null>(null);
     const [assigningTask, setAssigningTask] = useState<TaskResponse | null>(null);
     const [deletingTask, setDeletingTask] = useState<TaskResponse | null>(null);
+    const [viewingTask, setViewingTask] = useState<TaskResponse | null>(null);
 
     useEffect(() => {
         if (!getAuth()) router.replace("/login");
@@ -397,6 +395,7 @@ export default function ProjectDetailsPage() {
                         void refetchTasks();
                     }}
                     onCreateTask={() => setIsCreateTaskDialogOpen(true)}
+                    onViewTask={(task) => setViewingTask(task)}
                     onEditTask={(task) => setEditingTask(task)}
                     onAssignTask={(task) => setAssigningTask(task)}
                     onDeleteTask={(task) => setDeletingTask(task)}
@@ -460,6 +459,16 @@ export default function ProjectDetailsPage() {
                     isSubmitting={updateTaskMutation.isPending}
                     onClose={() => setEditingTask(null)}
                     onSubmit={handleUpdateTask}
+                />
+            )}
+
+            {viewingTask && (
+                <TaskDetailsDialog
+                    key={viewingTask.id}
+                    task={viewingTask}
+                    tenantId={tenantId}
+                    projectId={projectId}
+                    onClose={() => setViewingTask(null)}
                 />
             )}
 
